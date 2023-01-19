@@ -20,15 +20,13 @@ router = APIRouter(prefix='/api/v1')
 def get_menu_list(db: Session = Depends(get_session)) -> List[models.Menu]:
     query = db.query(
         models.Menu,
-        func.count(distinct(models.Submenu.id)),
-        func.count(models.Dish.id)
-    ).join(
-        models.Submenu,
-        models.Menu.id == models.Submenu.menu_id,
+        func.count(distinct(models.Menu.submenus)),     # func.count(distinct(models.Submenu.id)),
+        func.count(models.Submenu.dishes)               # func.count(models.Dish.id)
+    ).join(        
+        models.Menu.submenus,                           # models.Submenu, models.Menu.id == models.Submenu.menu_id,
         isouter=True
-    ).join(
-        models.Dish,
-        models.Submenu.id == models.Dish.submenu_id,
+    ).join(        
+        models.Submenu.dishes,                          # models.Dish, models.Submenu.id == models.Dish.submenu_id,
         isouter=True
     ).group_by(models.Menu.id).all()
 
@@ -46,15 +44,13 @@ def get_menu_list(db: Session = Depends(get_session)) -> List[models.Menu]:
 def get_menu(menu_id: int, db: Session = Depends(get_session)) -> models.Menu:
     query = db.query(
         models.Menu,
-        func.count(distinct(models.Submenu.id)),
-        func.count(models.Dish.id)
+        func.count(distinct(models.Menu.submenus)),
+        func.count(models.Submenu.dishes)
     ).join(
-        models.Submenu,
-        models.Menu.id == models.Submenu.menu_id,
+        models.Menu.submenus,
         isouter=True
     ).join(
-        models.Dish,
-        models.Submenu.id == models.Dish.submenu_id,
+        models.Submenu.dishes,
         isouter=True
     ).filter(models.Menu.id == menu_id).group_by(models.Menu.id).first()
 
@@ -81,15 +77,13 @@ def create_menu(menu: MenuCreate, db: Session = Depends(get_session)) -> Menu:
 def update_menu(menu_id: int, menu_data: MenuUpdate, db: Session = Depends(get_session)) -> Menu:
     query = db.query(
         models.Menu,
-        func.count(distinct(models.Submenu.id)),
-        func.count(models.Dish.id)
+        func.count(distinct(models.Menu.submenus)),
+        func.count(models.Submenu.dishes)
     ).join(
-        models.Submenu,
-        models.Menu.id == models.Submenu.menu_id,
+        models.Menu.submenus,
         isouter=True
     ).join(
-        models.Dish,
-        models.Submenu.id == models.Dish.submenu_id,
+        models.Submenu.dishes,
         isouter=True
     ).filter(models.Menu.id == menu_id).group_by(models.Menu.id).first()
 
@@ -127,10 +121,9 @@ def delete_menu(menu_id: int, db: Session = Depends(get_session)):
 def get_submenu_list(menu_id: int, db: Session = Depends(get_session)) -> List[models.Submenu]:
     query = db.query(
         models.Submenu,
-        func.count(models.Dish.id)
+        func.count(models.Submenu.dishes)
     ).join(
-        models.Dish,
-        models.Submenu.id == models.Dish.submenu_id,
+        models.Submenu.dishes,
         isouter=True
     ).filter(models.Submenu.menu_id == menu_id
     ).group_by(models.Submenu.id).all()
@@ -148,10 +141,9 @@ def get_submenu_list(menu_id: int, db: Session = Depends(get_session)) -> List[m
 def get_submenu(menu_id: int, submenu_id: int, db: Session = Depends(get_session)) -> models.Submenu:
     query = db.query(
         models.Submenu,
-        func.count(models.Dish.id)
+        func.count(models.Submenu.dishes)
     ).join(
-        models.Dish,
-        models.Submenu.id == models.Dish.submenu_id,
+        models.Submenu.dishes,
         isouter=True
     ).filter(models.Submenu.menu_id == menu_id
     ).filter(models.Submenu.id == submenu_id
@@ -168,7 +160,7 @@ def get_submenu(menu_id: int, submenu_id: int, db: Session = Depends(get_session
 
 
 @router.post('/menus/{menu_id}/submenus', response_model=Submenu, status_code=status.HTTP_201_CREATED)
-def create_submenu(menu_id: int, sunmenu_data: SubmenuCreate, db: Session = Depends(get_session)) -> Submenu:
+def create_submenu(menu_id: int, submenu_data: SubmenuCreate, db: Session = Depends(get_session)) -> Submenu:
     menu = db.query(models.Menu
         ).filter(models.Menu.id == menu_id
         ).first()
@@ -176,7 +168,7 @@ def create_submenu(menu_id: int, sunmenu_data: SubmenuCreate, db: Session = Depe
     if not menu:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="menu not found")
 
-    submenu_db = models.Submenu(**sunmenu_data.dict())
+    submenu_db = models.Submenu(**submenu_data.dict())
     menu.submenus.append(submenu_db)
     db.commit()
     db.refresh(submenu_db)
