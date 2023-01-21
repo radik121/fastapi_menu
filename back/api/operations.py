@@ -11,12 +11,14 @@ from db import models
 from sqlalchemy import distinct, func, select
 
 
-router = APIRouter(prefix='/api/v1')
+router = APIRouter(
+    prefix='/api/v1'
+    )
 
 
 ###Menu###
 
-@router.get('/menus', response_model=List[Menu])
+@router.get('/menus', response_model=List[Menu], tags=['menu'])
 def get_menu_list(db: Session = Depends(get_session)) -> List[models.Menu]:
     query = db.query(
         models.Menu,
@@ -40,7 +42,7 @@ def get_menu_list(db: Session = Depends(get_session)) -> List[models.Menu]:
     return menus
 
 
-@router.get('/menus/{menu_id}', response_model=Menu)
+@router.get('/menus/{menu_id}', response_model=Menu, tags=['menu'])
 def get_menu(menu_id: int, db: Session = Depends(get_session)) -> models.Menu:
     query = db.query(
         models.Menu,
@@ -64,7 +66,7 @@ def get_menu(menu_id: int, db: Session = Depends(get_session)) -> models.Menu:
     return menu    
     
 
-@router.post('/menus', response_model=Menu, status_code=status.HTTP_201_CREATED)
+@router.post('/menus', response_model=Menu, status_code=status.HTTP_201_CREATED, tags=['menu'])
 def create_menu(menu: MenuCreate, db: Session = Depends(get_session)) -> Menu:
     menu_db = models.Menu(**menu.dict())
     db.add(menu_db)
@@ -73,7 +75,7 @@ def create_menu(menu: MenuCreate, db: Session = Depends(get_session)) -> Menu:
     return menu_db
 
 
-@router.patch('/menus/{menu_id}', response_model=Menu)
+@router.patch('/menus/{menu_id}', response_model=Menu, tags=['menu'])
 def update_menu(menu_id: int, menu_data: MenuUpdate, db: Session = Depends(get_session)) -> Menu:
     query = db.query(
         models.Menu,
@@ -102,7 +104,7 @@ def update_menu(menu_id: int, menu_data: MenuUpdate, db: Session = Depends(get_s
     return menu
 
 
-@router.delete('/menus/{menu_id}', status_code=status.HTTP_200_OK)
+@router.delete('/menus/{menu_id}', status_code=status.HTTP_200_OK, tags=['menu'])
 def delete_menu(menu_id: int, db: Session = Depends(get_session)):
     query = db.query(models.Menu).filter(models.Menu.id == menu_id).first()
 
@@ -117,7 +119,7 @@ def delete_menu(menu_id: int, db: Session = Depends(get_session)):
 
 ###Submenu###
 
-@router.get('/menus/{menu_id}/submenus', response_model=List[Submenu])
+@router.get('/menus/{menu_id}/submenus', response_model=List[Submenu], tags=['submenu'])
 def get_submenu_list(menu_id: int, db: Session = Depends(get_session)) -> List[models.Submenu]:
     query = db.query(
         models.Submenu,
@@ -137,7 +139,7 @@ def get_submenu_list(menu_id: int, db: Session = Depends(get_session)) -> List[m
     return submenus
 
 
-@router.get('/menus/{menu_id}/submenus/{submenu_id}', response_model=Submenu)
+@router.get('/menus/{menu_id}/submenus/{submenu_id}', response_model=Submenu, tags=['submenu'])
 def get_submenu(menu_id: int, submenu_id: int, db: Session = Depends(get_session)) -> models.Submenu:
     query = db.query(
         models.Submenu,
@@ -159,7 +161,7 @@ def get_submenu(menu_id: int, submenu_id: int, db: Session = Depends(get_session
     return submenu
 
 
-@router.post('/menus/{menu_id}/submenus', response_model=Submenu, status_code=status.HTTP_201_CREATED)
+@router.post('/menus/{menu_id}/submenus', response_model=Submenu, status_code=status.HTTP_201_CREATED, tags=['submenu'])
 def create_submenu(menu_id: int, submenu_data: SubmenuCreate, db: Session = Depends(get_session)) -> Submenu:
     menu = db.query(models.Menu
         ).filter(models.Menu.id == menu_id
@@ -175,7 +177,7 @@ def create_submenu(menu_id: int, submenu_data: SubmenuCreate, db: Session = Depe
     return submenu_db
 
 
-@router.patch('/menus/{menu_id}/submenus/{submenu_id}', response_model=Submenu)
+@router.patch('/menus/{menu_id}/submenus/{submenu_id}', response_model=Submenu, tags=['submenu'])
 def update_submenu(menu_id: int, submenu_id: int,submenu_data: SubmenuUpdate, db: Session = Depends(get_session)) -> Submenu:
     submenu = db.query(models.Submenu
         ).filter(models.Submenu.id == submenu_id
@@ -194,8 +196,8 @@ def update_submenu(menu_id: int, submenu_id: int,submenu_data: SubmenuUpdate, db
     return submenu
     
 
-@router.delete('/menus/{menu_id}/submenus/{submenu_id}', status_code=status.HTTP_200_OK)
-def delete_menu(menu_id: int, submenu_id: int, db: Session = Depends(get_session)):
+@router.delete('/menus/{menu_id}/submenus/{submenu_id}', status_code=status.HTTP_200_OK, tags=['submenu'])
+def delete_submenu(menu_id: int, submenu_id: int, db: Session = Depends(get_session)):
     query = db.query(models.Submenu
         ).filter(models.Submenu.id == submenu_id
         ).filter(models.Submenu.menu_id == menu_id
@@ -212,7 +214,7 @@ def delete_menu(menu_id: int, submenu_id: int, db: Session = Depends(get_session
 
 ###Dish###
 
-@router.get('/menus/{menu_id}/submenus/{submenu_id}/dishes', response_model=List[Dish])
+@router.get('/menus/{menu_id}/submenus/{submenu_id}/dishes', response_model=List[Dish], tags=['dish'])
 def get_dish_list(menu_id: int, submenu_id: int, db: Session = Depends(get_session)) -> List[models.Dish]:
     dishes = db.query(models.Dish
         ).join(models.Submenu
@@ -221,7 +223,7 @@ def get_dish_list(menu_id: int, submenu_id: int, db: Session = Depends(get_sessi
     return dishes
 
 
-@router.get('/menus/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}', response_model=Dish)
+@router.get('/menus/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}', response_model=Dish, tags=['dish'])
 def get_dish(menu_id: int, submenu_id: int, dish_id: int, db: Session = Depends(get_session)) -> models.Dish:
     dish = db.query(models.Dish
         ).join(models.Submenu
@@ -235,7 +237,8 @@ def get_dish(menu_id: int, submenu_id: int, dish_id: int, db: Session = Depends(
     return dish
 
 
-@router.post('/menus/{menu_id}/submenus/{submenu_id}/dishes', response_model=Dish, status_code=status.HTTP_201_CREATED)
+@router.post('/menus/{menu_id}/submenus/{submenu_id}/dishes', response_model=Dish, status_code=status.HTTP_201_CREATED,
+             tags=['dish'])
 def create_dish(menu_id: int, submenu_id: int, dish_data: DishCreate, db: Session = Depends(get_session)) -> Dish:
     submenu = db.query(models.Submenu
         ).filter(models.Submenu.id == submenu_id, models.Submenu.menu_id == menu_id
@@ -249,7 +252,7 @@ def create_dish(menu_id: int, submenu_id: int, dish_data: DishCreate, db: Sessio
     return dish_db
 
 
-@router.patch('/menus/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}', response_model=Dish)
+@router.patch('/menus/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}', response_model=Dish, tags=['dish'])
 def update_dish(menu_id: int, submenu_id: int, dish_id: int, dish_data: DishUpdate, db: Session = Depends(get_session)) -> Dish:
     dish = db.query(models.Dish
         ).join(models.Submenu
@@ -270,8 +273,9 @@ def update_dish(menu_id: int, submenu_id: int, dish_id: int, dish_data: DishUpda
     return dish
 
 
-@router.delete('/menus/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}', status_code=status.HTTP_200_OK)
-def update_dish(menu_id: int, submenu_id: int, dish_id: int, db: Session = Depends(get_session)):
+@router.delete('/menus/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}', status_code=status.HTTP_200_OK,
+               tags=['dish'])
+def delete_dish(menu_id: int, submenu_id: int, dish_id: int, db: Session = Depends(get_session)):
     dish = db.query(models.Dish
         ).join(models.Submenu
         ).filter(models.Submenu.id == submenu_id,
