@@ -27,38 +27,20 @@
 git clone https://github.com/radik121/fastapi_menu.git
 ```
 
-2. Перейти в деркторию с проектом и установить виртуальное окружение
+2. Перейти в деркторию с проектом
 
 ```python
 cd fastapi_menu
 ```
-```python
-python3 -m venv venv
-```
 
-3. Активировать вирутальное окружение и установить зависимости
-
-```python
-source venv/bin/activate
-```
-```python
-pip install -r requiarements.txt
-```
-
-4. Переименовать файл .env_dev на .env (тестовые переменные окружения)
+3. Переименовать файл .env_dev на .env (тестовые переменные окружения)
 
 ```
 mv .env_dev .env
 ```
 
-5. Запустить БД (PostgeSQL) необходимо через docker-compose
+4. Запустить проект
 
 ```python
 docker-compose up -d
-```
-
-6. Запустить проект
-
-```python
-python back/app.py
 ```
