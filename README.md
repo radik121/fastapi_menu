@@ -1,5 +1,13 @@
 # Restaurant menu
 
+В проекте применен следующий стек технологий:
+- FastAPI
+- Uvicorn
+- PosgresSQL
+- SQLAlchemy
+- Docker, docker-compose
+
+
 ## Задание
 Написать проект на FastAPI с использованием PostgreSQL в качестве БД. В проекте следует реализовать REST API по работе с меню ресторана, все CRUD операции.
 Даны 3 сущности: Меню, Подменю, Блюдо.
@@ -39,8 +47,14 @@ cd fastapi_menu
 mv .env_dev .env
 ```
 
-4. Запустить проект
+4. Запустить web-приложение в контейнере Docker
 
 ```python
 docker-compose up -d
+```
+
+5. Запустить тесты для api-запросов
+
+```python
+docker-compose -f docker-compose.test.yml up
 ```

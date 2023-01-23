@@ -1,0 +1,16 @@
+version: '3.9'
+
+services:
+  test_web_api:
+    build: ./back
+    container_name: test_web_api
+    command: "pytest -vv"
+    env_file:
+      - .env
+    networks:
+      - test_menu_networks
+
+networks:
+  test_menu_networks:
+    external:
+      name: menu_networks
