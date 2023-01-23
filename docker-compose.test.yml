@@ -4,7 +4,7 @@ services:
   test_web_api:
     build: ./back
     container_name: test_web_api
-    command: "pytest -vv"
+    command: "pytest -v"
     env_file:
       - .env
     networks:
