@@ -1,48 +1,49 @@
-from fastapi.testclient import TestClient
-from app import app
+# from .conftest import client
 
 
-client = TestClient(app)
+
+# def get_menu(url, client):
+#     return client.get(url).json()[0]
 
 
-def get_menu(url):
-    return client.get(url).json()[0]
+from db import models
 
 
 class TestMenus:
 
     url = '/api/v1/menus'
 
-    menu_data = {
+    def test_ctreate_menu(self, client, db):
+        menu_data = {
         'title': 'menu1',
         'description': 'desc1'
         }
-
-    def test_ctreate_menu(self):
-        response = client.post(self.url, json=self.menu_data)
+        response = client.post(self.url, json=menu_data)
+        db_data = db.query(models.Menu).first()
 
         assert response.status_code == 201
-        assert response.json()['title'] == self.menu_data['title']
-        assert response.json()['description'] == self.menu_data['description']
+        assert response.json()['title'] == db_data.title
+        assert response.json()['description'] == db_data.description
         assert 'submenus_count' in response.json() and response.json()['submenus_count'] == 0
+        assert 'dishes_count' in response.json() and response.json()['dishes_count'] == 0
 
     
-    def test_list_menu(self):
+    def test_list_menu(self, client, create_menu):
         response = client.get(self.url)
 
         assert response.status_code == 200
         assert isinstance(response.json(), list)
-        assert response.json()[0]['title'] == self.menu_data['title']
-        assert response.json()[0]['description'] == self.menu_data['description']
+        assert response.json()[0]['title'] == create_menu['title']
+        assert response.json()[0]['description'] == create_menu['description']
 
 
-    def test_get_menu(self):
-        menu = get_menu(self.url)
-        response = client.get(f'{self.url}/{menu["id"]}')
+    def test_get_menu(self, client, db, create_menu):
+        menu = db.query(models.Menu).first()
+        response = client.get(f'{self.url}/{menu.id}')
 
         assert response.status_code == 200
         assert len(response.json()) == 5
-        assert response.json()['title'] == menu['title']
+        assert response.json()['title'] == menu.title
 
         error_resp = client.get(f'{self.url}/0')
 
@@ -50,11 +51,11 @@ class TestMenus:
         assert error_resp.json() == {'detail': 'menu not found'}
 
     
-    def test_update_menu(self):
-        menu_id = get_menu(self.url)['id']
+    def test_update_menu(self, client, db, create_menu):
+        menu = db.query(models.Menu).first()
         update_data = {'title': 'my_menu'}
 
-        response = client.patch(f'{self.url}/{menu_id}', json=update_data)
+        response = client.patch(f'{self.url}/{menu.id}', json=update_data)
 
         assert response.status_code == 200
         assert response.json()['title'] == update_data['title']
@@ -64,10 +65,11 @@ class TestMenus:
         assert error_resp.status_code == 404
         assert error_resp.json() == {'detail': 'menu not found'}
 
-    def test_delete_menu(self):
-        menu_id = get_menu(self.url)['id']
 
-        response = client.delete(f'{self.url}/{menu_id}')
+    def test_delete_menu(self, client, get_menu, db, create_menu):
+        menu = db.query(models.Menu).first()
+
+        response = client.delete(f'{self.url}/{menu.id}')
 
         assert response.status_code == 200
         assert response.json() == {"status": "true", "message": "The menu has been deleted"}
@@ -81,14 +83,14 @@ class TestSubmenus:
         'description': 'desc1'
         }
 
-    def test_list_submenu(self, base_url):
+    def test_list_submenu(self, base_url, client):
         response = client.get(base_url)
 
         assert response.status_code == 200
         assert response.json() == []
 
 
-    def test_create_submenu(self, base_url):
+    def test_create_submenu(self, base_url, client):
         response = client.post(base_url, json=self.submenu_data)
 
         assert response.status_code == 201
@@ -96,7 +98,7 @@ class TestSubmenus:
         assert response.json()['description'] == self.submenu_data['description']
 
     
-    def test_get_submenu(self, base_url):
+    def test_get_submenu(self, base_url, client):
         submenu_id = client.post(base_url, json=self.submenu_data).json()['id']
         response = client.get(f'{base_url}/{submenu_id}')
 
@@ -110,7 +112,7 @@ class TestSubmenus:
         assert error_resp.json() == {'detail': 'submenu not found'}
         
 
-    def test_update_submenu(self, base_url):
+    def test_update_submenu(self, base_url, client):
         update_data = {'title': 'new_submenu'}
         submenu_id = client.post(base_url, json=self.submenu_data).json()['id']
         response = client.patch(f'{base_url}/{submenu_id}', json=update_data)
@@ -124,7 +126,7 @@ class TestSubmenus:
         assert error_resp.json() == {'detail': 'submenu not found'}
 
     
-    def test_delete_submenu(self, base_url):
+    def test_delete_submenu(self, base_url, client):
         submenu_id = client.post(base_url, json=self.submenu_data).json()['id']
         response = client.delete(f'{base_url}/{submenu_id}')
 
@@ -141,14 +143,14 @@ class TestDishes:
         'price': '13.5'
     }
 
-    def test_list_dish(self, base_url_dish):
+    def test_list_dish(self, base_url_dish, client):
         response = client.get(base_url_dish)
 
         assert response.status_code == 200
         assert response.json() == []
 
 
-    def test_create_dish(self, base_url_dish):
+    def test_create_dish(self, base_url_dish, client):
         response = client.post(base_url_dish, json=self.dish_data)
 
         assert response.status_code == 201
@@ -156,7 +158,7 @@ class TestDishes:
         assert response.json()['description'] == self.dish_data['description']
 
     
-    def test_get_menu(self, base_url_dish):
+    def test_get_menu(self, base_url_dish, client):
         dish_id = client.post(base_url_dish, json=self.dish_data).json()['id']
         response = client.get(f'{base_url_dish}/{dish_id}')
 
@@ -170,7 +172,7 @@ class TestDishes:
         assert error_resp.json() == {'detail': 'dish not found'}
 
 
-    def test_update_dish(self, base_url_dish):
+    def test_update_dish(self, base_url_dish, client):
         update_data = {
             'title': 'new_dish',
             'price': '134.50'
@@ -188,7 +190,7 @@ class TestDishes:
         assert error_resp.json() == {'detail': 'dish not found'}
 
 
-    def test_delete_dish(self, base_url_dish):
+    def test_delete_dish(self, base_url_dish, client):
         dish_id = client.post(base_url_dish, json=self.dish_data).json()['id']
         response = client.delete(f'{base_url_dish}/{dish_id}')
 
