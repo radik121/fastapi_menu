@@ -12,28 +12,6 @@ from db.engine import get_session
 
 SQLALCHEMY_DATABASE_URL = f"postgresql+psycopg2://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}/{POSTGRES_DB_TEST}"
 
-# if not database_exists(SQLALCHEMY_DATABASE_URL):
-#     create_database(SQLALCHEMY_DATABASE_URL)
-
-# engine = create_engine(SQLALCHEMY_DATABASE_URL)
-
-# TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-# Base.metadata.create_all(bind=engine)
-
-# def override_get_db():
-#     try:
-#         db = TestingSessionLocal()
-#         yield db
-#     finally:
-#         db.rollback()
-#         db.close()
-
-# app.dependency_overrides[get_session] = override_get_db
-
-
-# client = TestClient(app)
-
 
 @pytest.fixture(scope="session")
 def db_engine():
