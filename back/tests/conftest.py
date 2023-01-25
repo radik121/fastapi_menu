@@ -5,12 +5,12 @@ from sqlalchemy_utils import database_exists, create_database
 
 from fastapi.testclient import TestClient
 from app import app
-from config import POSTGRES_DB_TEST, POSTGRES_HOST, POSTGRES_PASSWORD, POSTGRES_USER
+from config import POSTGRES_DB_TEST, POSTGRES_HOST, POSTGRES_HOST_TEST, POSTGRES_PASSWORD, POSTGRES_USER
 from db import Base
 from db.engine import get_session
 
 
-SQLALCHEMY_DATABASE_URL = f"postgresql+psycopg2://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}/{POSTGRES_DB_TEST}"
+SQLALCHEMY_DATABASE_URL = f"postgresql+psycopg2://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST_TEST}/{POSTGRES_DB_TEST}"
 
 
 @pytest.fixture(scope="session")
