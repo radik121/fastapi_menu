@@ -22,7 +22,7 @@ services:
 
   db:
     image: postgres:15.1-alpine
-    container_name: fastapi_project
+    container_name: db_postgres
     restart: always
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
