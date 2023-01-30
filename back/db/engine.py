@@ -15,7 +15,7 @@ engine = create_engine(DB_URL)
 Session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
-def get_session() -> Session:
+def get_session():
     session = Session()
     try:
         yield session
