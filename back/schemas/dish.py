@@ -1,6 +1,3 @@
-from decimal import Decimal
-from typing import Optional, Union
-
 from pydantic import BaseModel
 
 

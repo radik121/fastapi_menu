@@ -1,8 +1,8 @@
 from db import models
 from fastapi import HTTPException, status
-from schemas.dish import Dish, DishCreate, DishUpdate
-from schemas.menu import Menu, MenuCreate, MenuUpdate
-from schemas.submenu import Submenu, SubmenuCreate, SubmenuUpdate
+from schemas.dish import DishCreate, DishUpdate
+from schemas.menu import MenuCreate, MenuUpdate
+from schemas.submenu import SubmenuCreate, SubmenuUpdate
 from sqlalchemy import distinct, func
 from sqlalchemy.orm import Session
 
@@ -16,7 +16,7 @@ def not_found_404(value: str):
     )
 
 
-class Menu:
+class MenuCrud:
     """Requests by menu"""
 
     def get_list(self, db: Session):
@@ -28,16 +28,12 @@ class Menu:
 
         query = db.query(
             models.Menu,
-            # func.count(distinct(models.Submenu.id)),
             func.count(distinct(models.Menu.submenus)),
-            # func.count(models.Dish.id)
             func.count(models.Submenu.dishes),
         ).join(
-            # models.Submenu, models.Menu.id == models.Submenu.menu_id,
             models.Menu.submenus,
             isouter=True,
         ).join(
-            # models.Dish, models.Submenu.id == models.Dish.submenu_id,
             models.Submenu.dishes,
             isouter=True,
         ).group_by(models.Menu.id).all()
@@ -145,12 +141,12 @@ class Menu:
             f'submenu_{menu_id}',
             f'dish_{query.id}',
         ]
-        cache.delete_all(key)
+        cache.delete_one(key)
 
         return {'status': 'true', 'message': 'The menu has been deleted'}
 
 
-class Submenu:
+class SubmenuCrud:
     """Requests by submenu"""
 
     def get_list(self, menu_id: int, db: Session):
@@ -279,7 +275,7 @@ class Submenu:
             f'submenu_{menu_id}_{query.id}',
             f'dish_{menu_id}_{query.id}',
         ]
-        cache.delete_all(key)
+        cache.delete_one(key)
 
         db.delete(query)
         db.commit()
@@ -287,7 +283,7 @@ class Submenu:
         return {'status': 'true', 'message': 'The submenu has been deleted'}
 
 
-class Dish:
+class DishCrud:
     """Requests by dish"""
 
     def get_list(self, menu_id: int, submenu_id: int, db: Session):
@@ -413,7 +409,7 @@ class Dish:
             f'dish_{menu_id}_{submenu_id}',
             f'dish_{menu_id}_{submenu_id}_{dish.id}',
         ]
-        cache.delete_all(key)
+        cache.delete_one(key)
 
         db.delete(dish)
         db.commit()
@@ -421,6 +417,6 @@ class Dish:
         return {'status': 'true', 'message': 'The dish has been deleted'}
 
 
-menu = Menu()
-submenu = Submenu()
-dish = Dish()
+menu = MenuCrud()
+submenu = SubmenuCrud()
+dish = DishCrud()

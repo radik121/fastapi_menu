@@ -1,31 +1,19 @@
 import pytest
-import redis
 from app import app
 from config import (
     POSTGRES_DB_TEST,
     POSTGRES_HOST_TEST,
     POSTGRES_PASSWORD,
     POSTGRES_USER,
-    REDIS_DB_TEST,
-    REDIS_HOST_TEST,
-    REDIS_PORT,
 )
 from db import Base
 from db.engine import get_session
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.orm import Session
 from sqlalchemy_utils import create_database, database_exists
 
 SQLALCHEMY_DATABASE_URL = f'postgresql+psycopg2://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST_TEST}/{POSTGRES_DB_TEST}'
-
-# pool = redis.ConnectionPool(
-#     host=REDIS_HOST_TEST,
-#     port=REDIS_PORT,
-#     db=REDIS_DB_TEST,
-# )
-
-# redis_client = redis.Redis(connection_pool=pool)
 
 
 @pytest.fixture(scope='session')

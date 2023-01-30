@@ -1,5 +1,3 @@
-from typing import List
-
 from db import models
 from db.engine import get_session
 from db.redis import redis_client
@@ -20,8 +18,6 @@ router = APIRouter(
 async def startup():
     redis_client
 
-
-### Menu###
 
 @router.get(
     '/menus',
@@ -74,8 +70,6 @@ def delete_menu(menu_id: int, db: Session = Depends(get_session)):
     return menu.delete(menu_id, db)
 
 
-### Submenu###
-
 @router.get(
     '/menus/{menu_id}/submenus',
     response_model=list[Submenu],
@@ -126,8 +120,6 @@ def update_submenu(menu_id: int, submenu_id: int, submenu_data: SubmenuUpdate, d
 def delete_submenu(menu_id: int, submenu_id: int, db: Session = Depends(get_session)):
     return submenu.delete(menu_id, submenu_id, db)
 
-
-### Dish###
 
 @router.get(
     '/menus/{menu_id}/submenus/{submenu_id}/dishes',
