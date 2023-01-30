@@ -1,13 +1,12 @@
-from fastapi import FastAPI
 import uvicorn
 from api import router
-
+from fastapi import FastAPI
 
 app = FastAPI(
     title='Menu',
     docs_url='/api/v1/docs',
-    redoc_url='/api/v1/redoc'
-    )
+    redoc_url='/api/v1/redoc',
+)
 
 app.include_router(router)
 

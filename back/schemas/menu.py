@@ -1,11 +1,12 @@
 from typing import Optional, Union
+
 from pydantic import BaseModel
 
 
 class MenuBase(BaseModel):
 
     title: str
-    description: Optional[str]
+    description: str | None
 
     class Config:
         orm_mode = True
@@ -21,8 +22,8 @@ class MenuUpdate(MenuBase):
 
 class Menu(MenuBase):
     id: str
-    submenus_count: Optional[int] = 0
-    dishes_count: Optional[int] = 0
+    submenus_count: int | None = 0
+    dishes_count: int | None = 0
 
     # class Config:
     #     orm_mode = True

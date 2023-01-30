@@ -1,12 +1,13 @@
 from decimal import Decimal
 from typing import Optional, Union
+
 from pydantic import BaseModel
 
 
 class DishBase(BaseModel):
 
     title: str
-    description: Optional[str]
+    description: str | None
     price: str
 
     class Config:
