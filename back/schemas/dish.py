@@ -9,6 +9,13 @@ class DishBase(BaseModel):
 
     class Config:
         orm_mode = True
+        schema_extra = {
+            'example': {
+                'title': 'My dish',
+                'description': 'Dish description',
+                'price': '10.50',
+            },
+        }
 
 
 class DishCreate(DishBase):
@@ -21,3 +28,14 @@ class DishUpdate(DishBase):
 
 class Dish(DishBase):
     id: str
+
+
+class DishDelete(BaseModel):
+
+    class Config:
+        schema_extra = {
+            'example': {
+                'status': 'true',
+                'message': 'The dish has been deleted',
+            },
+        }

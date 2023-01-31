@@ -8,6 +8,12 @@ class SubmenuBase(BaseModel):
 
     class Config:
         orm_mode = True
+        schema_extra = {
+            'example': {
+                'totle': 'My submenu',
+                'description': 'Submenu description',
+            },
+        }
 
 
 class SubmenuCreate(SubmenuBase):
@@ -22,5 +28,22 @@ class Submenu(SubmenuBase):
     id: str
     dishes_count: int | None = 0
 
-    # class Config:
-    #     orm_mode = True
+    class Config:
+        schema_extra = {
+            'example': {
+                'totle': 'My submenu',
+                'description': 'Submenu description',
+                'dishes count': 0,
+            },
+        }
+
+
+class SubmenuDelete(BaseModel):
+
+    class Config:
+        schema_extra = {
+            'example': {
+                'status': 'true',
+                'message': 'The submenu has been deleted',
+            },
+        }

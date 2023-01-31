@@ -2,9 +2,9 @@ from db import models
 from db.engine import get_session
 from db.redis import redis_client
 from fastapi import APIRouter, Depends, status
-from schemas.dish import Dish, DishCreate, DishUpdate
-from schemas.menu import Menu, MenuCreate, MenuUpdate
-from schemas.submenu import Submenu, SubmenuCreate, SubmenuUpdate
+from schemas.dish import Dish, DishCreate, DishDelete, DishUpdate
+from schemas.menu import Menu, MenuCreate, MenuDelete, MenuUpdate
+from schemas.submenu import Submenu, SubmenuCreate, SubmenuDelete, SubmenuUpdate
 from sqlalchemy.orm import Session
 
 from .operations import dish, menu, submenu
@@ -63,6 +63,7 @@ def update_menu(menu_id: int, menu_data: MenuUpdate, db: Session = Depends(get_s
 @router.delete(
     '/menus/{menu_id}',
     status_code=status.HTTP_200_OK,
+    response_model=MenuDelete,
     tags=['menu'],
     summary='Удаление конкрентного меню',
 )
@@ -114,6 +115,7 @@ def update_submenu(menu_id: int, submenu_id: int, submenu_data: SubmenuUpdate, d
 @router.delete(
     '/menus/{menu_id}/submenus/{submenu_id}',
     status_code=status.HTTP_200_OK,
+    response_model=SubmenuDelete,
     tags=['submenu'],
     summary='Удаление конкрентного подменю',
 )
@@ -164,6 +166,7 @@ def update_dish(menu_id: int, submenu_id: int, dish_id: int, dish_data: DishUpda
 @router.delete(
     '/menus/{menu_id}/submenus/{submenu_id}/dishes/{dish_id}',
     status_code=status.HTTP_200_OK,
+    response_model=DishDelete,
     tags=['dish'],
     summary='Удаление конкрентного блюда',
 )
