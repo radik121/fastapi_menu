@@ -58,3 +58,5 @@ docker-compose up -d
 ```python
 docker-compose -f docker-compose.test.yml up
 ```
+
+ #### Документация OpenAPI: http://0.0.0.0:8000/api/v1/docs
