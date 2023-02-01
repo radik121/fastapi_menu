@@ -1,18 +1,27 @@
 from db import models
 from fastapi import HTTPException, status
+from psycopg2.errors import UniqueViolation
 from schemas.dish import DishCreate, DishUpdate
 from schemas.menu import MenuCreate, MenuUpdate
 from schemas.submenu import SubmenuCreate, SubmenuUpdate
 from sqlalchemy import distinct, func
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from .cache import cache
 
 
-def not_found_404(value: str):
+def not_found_404(value: str) -> HTTPException:
     raise HTTPException(
         status_code=status.HTTP_404_NOT_FOUND,
         detail=f'{value} not found',
+    )
+
+
+def unique_violation(value: str) -> HTTPException:
+    raise HTTPException(
+        status_code=status.HTTP_409_CONFLICT,
+        detail=f'{value} title already exists',
     )
 
 
@@ -46,7 +55,8 @@ class MenuCrud:
             item.dishes_count = i[2]
             menus.append(item)
 
-        cache.set(key, menus)
+        if menus:
+            cache.set(key, menus)
 
         return menus
 
@@ -80,17 +90,22 @@ class MenuCrud:
         menu.submenus_count = query[1]
         menu.dishes_count = query[2]
 
-        cache.set(key, menu)
+        if menu:
+            cache.set(key, menu)
 
         return menu
 
     def create(self, menu_data: MenuCreate, db: Session):
-        cache.delete_one(['menus_list'])
-        menu_db = models.Menu(**menu_data.dict())
-        db.add(menu_db)
-        db.commit()
-        db.refresh(menu_db)
-        return menu_db
+        try:
+            cache.delete_one(['menus_list'])
+            menu_db = models.Menu(**menu_data.dict())
+            db.add(menu_db)
+            db.commit()
+            db.refresh(menu_db)
+            return menu_db
+        except IntegrityError as error:
+            if isinstance(error.orig, UniqueViolation):
+                unique_violation('Menu')
 
     def update(self, menu_id: int, menu_data: MenuUpdate, db: Session):
         key = [f'menu_{menu_id}', 'menus_list']
@@ -139,11 +154,14 @@ class MenuCrud:
             f'menu_{menu_id}',
             'menus_list',
             f'submenu_{menu_id}',
-            f'dish_{query.id}',
+            f'dish_{menu_id}',
         ]
-        cache.delete_one(key)
+        cache.delete_all(key)
 
-        return {'status': 'true', 'message': 'The menu has been deleted'}
+        return {
+            'status': 'true',
+            'message': 'The menu has been deleted',
+        }
 
 
 class SubmenuCrud:
@@ -173,7 +191,8 @@ class SubmenuCrud:
             item.dishes_count = i[1]
             submenus.append(item)
 
-        cache.set(key, submenus)
+        if submenus:
+            cache.set(key, submenus)
 
         return submenus
 
@@ -204,29 +223,33 @@ class SubmenuCrud:
         submenu = query[0]
         submenu.dishes_count = query[1]
 
-        cache.set(key, submenu)
+        if submenu:
+            cache.set(key, submenu)
 
         return submenu
 
     def create(self, menu_id: int, submenu_data: SubmenuCreate, db: Session):
-        key = [f'menu_{menu_id}', 'menus_list', f'submenu_{menu_id}']
-        cache.delete_one(key)
+        try:
+            key = [f'menu_{menu_id}', 'menus_list', f'submenu_{menu_id}']
+            cache.delete_one(key)
 
-        menu = db.query(
-            models.Menu,
-        ).filter(
-            models.Menu.id == menu_id,
-        ).first()
+            menu = db.query(
+                models.Menu,
+            ).filter(
+                models.Menu.id == menu_id,
+            ).first()
 
-        if not menu:
-            not_found_404('submenu')
+            if not menu:
+                not_found_404('menu')
 
-        submenu_db = models.Submenu(**submenu_data.dict())
-        menu.submenus.append(submenu_db)
-        db.commit()
-        db.refresh(submenu_db)
-
-        return submenu_db
+            submenu_db = models.Submenu(**submenu_data.dict())
+            menu.submenus.append(submenu_db)
+            db.commit()
+            db.refresh(submenu_db)
+            return submenu_db
+        except IntegrityError as error:
+            if isinstance(error.orig, UniqueViolation):
+                unique_violation('Submenu')
 
     def update(self, menu_id: int, submenu_id: int, submenu_data: SubmenuUpdate, db: Session):
         key = [
@@ -280,7 +303,10 @@ class SubmenuCrud:
         db.delete(query)
         db.commit()
 
-        return {'status': 'true', 'message': 'The submenu has been deleted'}
+        return {
+            'status': 'true',
+            'message': 'The submenu has been deleted',
+        }
 
 
 class DishCrud:
@@ -302,7 +328,8 @@ class DishCrud:
             models.Submenu.menu_id == menu_id,
         ).all()
 
-        cache.set(key, dishes)
+        if dishes:
+            cache.set(key, dishes)
 
         return dishes
 
@@ -327,32 +354,37 @@ class DishCrud:
             not_found_404('dish')
 
         cache.set(key, dish)
-
         return dish
 
     def create(self, menu_id: int, submenu_id: int, dish_data: DishCreate, db: Session):
-        key = [
-            f'menu_{menu_id}',
-            'menus_list',
-            f'submenu_{menu_id}',
-            f'submenu_{menu_id}_{submenu_id}',
-            f'dish_{menu_id}_{submenu_id}',
-        ]
-        cache.delete_one(key)
+        try:
+            key = [
+                f'menu_{menu_id}',
+                'menus_list',
+                f'submenu_{menu_id}',
+                f'submenu_{menu_id}_{submenu_id}',
+                f'dish_{menu_id}_{submenu_id}',
+            ]
+            cache.delete_one(key)
 
-        submenu = db.query(
-            models.Submenu,
-        ).filter(
-            models.Submenu.id == submenu_id,
-            models.Submenu.menu_id == menu_id,
-        ).first()
+            submenu = db.query(
+                models.Submenu,
+            ).filter(
+                models.Submenu.id == submenu_id,
+                models.Submenu.menu_id == menu_id,
+            ).first()
 
-        dish_db = models.Dish(**dict(dish_data))
-        submenu.dishes.append(dish_db)
-        db.commit()
-        db.refresh(dish_db)
+            if not submenu:
+                not_found_404('submenu')
 
-        return dish_db
+            dish_db = models.Dish(**dict(dish_data))
+            submenu.dishes.append(dish_db)
+            db.commit()
+            db.refresh(dish_db)
+            return dish_db
+        except IntegrityError as error:
+            if isinstance(error.orig, UniqueViolation):
+                unique_violation('Dish')
 
     def update(self, menu_id: int, submenu_id: int, dish_id: int, dish_data: DishUpdate, db: Session):
         key = [
@@ -414,7 +446,10 @@ class DishCrud:
         db.delete(dish)
         db.commit()
 
-        return {'status': 'true', 'message': 'The dish has been deleted'}
+        return {
+            'status': 'true',
+            'message': 'The dish has been deleted',
+        }
 
 
 menu = MenuCrud()

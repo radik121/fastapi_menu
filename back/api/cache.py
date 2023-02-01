@@ -20,7 +20,7 @@ class RedisCache:
     def delete_one(self, keys: list[str] | str) -> None:
         redis_client.delete(*keys)
 
-    def delete_all(self, key: str) -> None:
+    def delete_all(self, key: list[str]) -> None:
         keys = redis_client.keys(f'{key}*')
         if keys:
             redis_client.delete(*keys)
