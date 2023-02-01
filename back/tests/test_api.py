@@ -1,10 +1,3 @@
-# from .conftest import client
-
-
-# def get_menu(url, client):
-#     return client.get(url).json()[0]
-
-
 from db import models
 
 
