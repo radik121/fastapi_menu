@@ -32,6 +32,9 @@ class Dish(DishBase):
 
 class DishDelete(BaseModel):
 
+    status: str
+    message: str
+
     class Config:
         schema_extra = {
             'example': {

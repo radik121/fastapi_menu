@@ -10,7 +10,7 @@ class SubmenuBase(BaseModel):
         orm_mode = True
         schema_extra = {
             'example': {
-                'totle': 'My submenu',
+                'title': 'My submenu',
                 'description': 'Submenu description',
             },
         }
@@ -31,7 +31,7 @@ class Submenu(SubmenuBase):
     class Config:
         schema_extra = {
             'example': {
-                'totle': 'My submenu',
+                'title': 'My submenu',
                 'description': 'Submenu description',
                 'dishes count': 0,
             },
@@ -39,6 +39,9 @@ class Submenu(SubmenuBase):
 
 
 class SubmenuDelete(BaseModel):
+
+    status: str
+    message: str
 
     class Config:
         schema_extra = {

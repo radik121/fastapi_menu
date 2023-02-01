@@ -42,6 +42,10 @@ class Menu(MenuBase):
 
 
 class MenuDelete(BaseModel):
+
+    status: str
+    message: str
+
     class Config:
         schema_extra = {
             'example': {
