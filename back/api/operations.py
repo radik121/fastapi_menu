@@ -14,14 +14,14 @@ from .cache import cache
 def not_found_404(value: str) -> HTTPException:
     raise HTTPException(
         status_code=status.HTTP_404_NOT_FOUND,
-        detail=f'{value} not found',
+        detail=f"{value} not found",
     )
 
 
 def unique_violation(value: str) -> HTTPException:
     raise HTTPException(
         status_code=status.HTTP_409_CONFLICT,
-        detail=f'{value} title already exists',
+        detail=f"{value} title already exists",
     )
 
 
@@ -29,23 +29,29 @@ class MenuCrud:
     """Requests by menu"""
 
     def get_list(self, db: Session):
-        key = 'menus_list'
+        key = "menus_list"
         cache_menus = cache.get(key)
 
         if cache_menus:
             return cache_menus
 
-        query = db.query(
-            models.Menu,
-            func.count(distinct(models.Menu.submenus)),
-            func.count(models.Submenu.dishes),
-        ).join(
-            models.Menu.submenus,
-            isouter=True,
-        ).join(
-            models.Submenu.dishes,
-            isouter=True,
-        ).group_by(models.Menu.id).all()
+        query = (
+            db.query(
+                models.Menu,
+                func.count(distinct(models.Menu.submenus)),
+                func.count(models.Submenu.dishes),
+            )
+            .join(
+                models.Menu.submenus,
+                isouter=True,
+            )
+            .join(
+                models.Submenu.dishes,
+                isouter=True,
+            )
+            .group_by(models.Menu.id)
+            .all()
+        )
 
         menus = []
         for i in query:
@@ -61,30 +67,37 @@ class MenuCrud:
         return menus
 
     def get_id_menu(self, menu_id: int, db: Session):
-        key = f'menu_{menu_id}'
+        key = f"menu_{menu_id}"
         cache_menu = cache.get(key)
 
         if cache_menu:
             return cache_menu
 
-        query = db.query(
-            models.Menu,
-            func.count(distinct(models.Menu.submenus)),
-            func.count(models.Submenu.dishes),
-        ).join(
-            models.Menu.submenus,
-            isouter=True,
-        ).join(
-            models.Submenu.dishes,
-            isouter=True,
-        ).filter(
-            models.Menu.id == menu_id,
-        ).group_by(
-            models.Menu.id,
-        ).first()
+        query = (
+            db.query(
+                models.Menu,
+                func.count(distinct(models.Menu.submenus)),
+                func.count(models.Submenu.dishes),
+            )
+            .join(
+                models.Menu.submenus,
+                isouter=True,
+            )
+            .join(
+                models.Submenu.dishes,
+                isouter=True,
+            )
+            .filter(
+                models.Menu.id == menu_id,
+            )
+            .group_by(
+                models.Menu.id,
+            )
+            .first()
+        )
 
         if not query:
-            not_found_404('menu')
+            not_found_404("menu")
 
         menu = query[0]
         menu.submenus_count = query[1]
@@ -97,7 +110,7 @@ class MenuCrud:
 
     def create(self, menu_data: MenuCreate, db: Session):
         try:
-            cache.delete_one(['menus_list'])
+            cache.delete_one(["menus_list"])
             menu_db = models.Menu(**menu_data.dict())
             db.add(menu_db)
             db.commit()
@@ -105,25 +118,32 @@ class MenuCrud:
             return menu_db
         except IntegrityError as error:
             if isinstance(error.orig, UniqueViolation):
-                unique_violation('Menu')
+                unique_violation("Menu")
 
     def update(self, menu_id: int, menu_data: MenuUpdate, db: Session):
-        key = [f'menu_{menu_id}', 'menus_list']
+        key = [f"menu_{menu_id}", "menus_list"]
 
-        query = db.query(
-            models.Menu,
-            func.count(distinct(models.Menu.submenus)),
-            func.count(models.Submenu.dishes),
-        ).join(
-            models.Menu.submenus,
-            isouter=True,
-        ).join(
-            models.Submenu.dishes,
-            isouter=True,
-        ).filter(models.Menu.id == menu_id).group_by(models.Menu.id).first()
+        query = (
+            db.query(
+                models.Menu,
+                func.count(distinct(models.Menu.submenus)),
+                func.count(models.Submenu.dishes),
+            )
+            .join(
+                models.Menu.submenus,
+                isouter=True,
+            )
+            .join(
+                models.Submenu.dishes,
+                isouter=True,
+            )
+            .filter(models.Menu.id == menu_id)
+            .group_by(models.Menu.id)
+            .first()
+        )
 
         if not query:
-            not_found_404('menu')
+            not_found_404("menu")
 
         menu = query[0]
         menu.submenus_count = query[1]
@@ -138,29 +158,33 @@ class MenuCrud:
         return menu
 
     def delete(self, menu_id: int, db: Session):
-        query = db.query(
-            models.Menu,
-        ).filter(
-            models.Menu.id == menu_id,
-        ).first()
+        query = (
+            db.query(
+                models.Menu,
+            )
+            .filter(
+                models.Menu.id == menu_id,
+            )
+            .first()
+        )
 
         if not query:
-            not_found_404('menu')
+            not_found_404("menu")
 
         db.delete(query)
         db.commit()
 
         key = [
-            f'menu_{menu_id}',
-            'menus_list',
-            f'submenu_{menu_id}',
-            f'dish_{menu_id}',
+            f"menu_{menu_id}",
+            "menus_list",
+            f"submenu_{menu_id}",
+            f"dish_{menu_id}",
         ]
         cache.delete_all(key)
 
         return {
-            'status': 'true',
-            'message': 'The menu has been deleted',
+            "status": "true",
+            "message": "The menu has been deleted",
         }
 
 
@@ -168,21 +192,27 @@ class SubmenuCrud:
     """Requests by submenu"""
 
     def get_list(self, menu_id: int, db: Session):
-        key = f'submenu_{menu_id}'
+        key = f"submenu_{menu_id}"
         cache_submenus = cache.get(key)
 
         if cache_submenus:
             return cache_submenus
 
-        query = db.query(
-            models.Submenu,
-            func.count(models.Submenu.dishes),
-        ).join(
-            models.Submenu.dishes,
-            isouter=True,
-        ).filter(
-            models.Submenu.menu_id == menu_id,
-        ).group_by(models.Submenu.id).all()
+        query = (
+            db.query(
+                models.Submenu,
+                func.count(models.Submenu.dishes),
+            )
+            .join(
+                models.Submenu.dishes,
+                isouter=True,
+            )
+            .filter(
+                models.Submenu.menu_id == menu_id,
+            )
+            .group_by(models.Submenu.id)
+            .all()
+        )
 
         submenus = []
         for i in query:
@@ -197,28 +227,35 @@ class SubmenuCrud:
         return submenus
 
     def get_id_submenu(self, menu_id: int, submenu_id: int, db: Session):
-        key = f'submenu_{menu_id}_{submenu_id}'
+        key = f"submenu_{menu_id}_{submenu_id}"
         cache_submenu = cache.get(key)
 
         if cache_submenu:
             return cache_submenu
 
-        query = db.query(
-            models.Submenu,
-            func.count(models.Submenu.dishes),
-        ).join(
-            models.Submenu.dishes,
-            isouter=True,
-        ).filter(
-            models.Submenu.menu_id == menu_id,
-        ).filter(
-            models.Submenu.id == submenu_id,
-        ).group_by(
-            models.Submenu.id,
-        ).first()
+        query = (
+            db.query(
+                models.Submenu,
+                func.count(models.Submenu.dishes),
+            )
+            .join(
+                models.Submenu.dishes,
+                isouter=True,
+            )
+            .filter(
+                models.Submenu.menu_id == menu_id,
+            )
+            .filter(
+                models.Submenu.id == submenu_id,
+            )
+            .group_by(
+                models.Submenu.id,
+            )
+            .first()
+        )
 
         if not query:
-            not_found_404('submenu')
+            not_found_404("submenu")
 
         submenu = query[0]
         submenu.dishes_count = query[1]
@@ -230,17 +267,21 @@ class SubmenuCrud:
 
     def create(self, menu_id: int, submenu_data: SubmenuCreate, db: Session):
         try:
-            key = [f'menu_{menu_id}', 'menus_list', f'submenu_{menu_id}']
+            key = [f"menu_{menu_id}", "menus_list", f"submenu_{menu_id}"]
             cache.delete_one(key)
 
-            menu = db.query(
-                models.Menu,
-            ).filter(
-                models.Menu.id == menu_id,
-            ).first()
+            menu = (
+                db.query(
+                    models.Menu,
+                )
+                .filter(
+                    models.Menu.id == menu_id,
+                )
+                .first()
+            )
 
             if not menu:
-                not_found_404('menu')
+                not_found_404("menu")
 
             submenu_db = models.Submenu(**submenu_data.dict())
             menu.submenus.append(submenu_db)
@@ -249,27 +290,32 @@ class SubmenuCrud:
             return submenu_db
         except IntegrityError as error:
             if isinstance(error.orig, UniqueViolation):
-                unique_violation('Submenu')
+                unique_violation("Submenu")
 
     def update(self, menu_id: int, submenu_id: int, submenu_data: SubmenuUpdate, db: Session):
         key = [
-            f'menu_{menu_id}',
-            'menus_list',
-            f'submenu_{menu_id}',
-            f'submenu_{menu_id}_{submenu_id}',
+            f"menu_{menu_id}",
+            "menus_list",
+            f"submenu_{menu_id}",
+            f"submenu_{menu_id}_{submenu_id}",
         ]
         cache.delete_one(key)
 
-        submenu = db.query(
-            models.Submenu,
-        ).filter(
-            models.Submenu.id == submenu_id,
-        ).filter(
-            models.Submenu.menu_id == menu_id,
-        ).first()
+        submenu = (
+            db.query(
+                models.Submenu,
+            )
+            .filter(
+                models.Submenu.id == submenu_id,
+            )
+            .filter(
+                models.Submenu.menu_id == menu_id,
+            )
+            .first()
+        )
 
         if not submenu:
-            not_found_404('submenu')
+            not_found_404("submenu")
 
         submenu.title = submenu_data.title if submenu_data.title else submenu.title
         submenu.description = submenu_data.description if submenu_data.description else submenu.description
@@ -280,23 +326,28 @@ class SubmenuCrud:
         return submenu
 
     def delete(self, menu_id: int, submenu_id: int, db: Session):
-        query = db.query(
-            models.Submenu,
-        ).filter(
-            models.Submenu.id == submenu_id,
-        ).filter(
-            models.Submenu.menu_id == menu_id,
-        ).first()
+        query = (
+            db.query(
+                models.Submenu,
+            )
+            .filter(
+                models.Submenu.id == submenu_id,
+            )
+            .filter(
+                models.Submenu.menu_id == menu_id,
+            )
+            .first()
+        )
 
         if not query:
-            not_found_404('submenu')
+            not_found_404("submenu")
 
         key = [
-            f'menu_{menu_id}',
-            'menus_list',
-            f'submenu_{menu_id}',
-            f'submenu_{menu_id}_{query.id}',
-            f'dish_{menu_id}_{query.id}',
+            f"menu_{menu_id}",
+            "menus_list",
+            f"submenu_{menu_id}",
+            f"submenu_{menu_id}_{query.id}",
+            f"dish_{menu_id}_{query.id}",
         ]
         cache.delete_one(key)
 
@@ -304,8 +355,8 @@ class SubmenuCrud:
         db.commit()
 
         return {
-            'status': 'true',
-            'message': 'The submenu has been deleted',
+            "status": "true",
+            "message": "The submenu has been deleted",
         }
 
 
@@ -313,20 +364,25 @@ class DishCrud:
     """Requests by dish"""
 
     def get_list(self, menu_id: int, submenu_id: int, db: Session):
-        key = f'dish_{menu_id}_{submenu_id}'
+        key = f"dish_{menu_id}_{submenu_id}"
         cache_dishes = cache.get(key)
 
         if cache_dishes:
             return cache_dishes
 
-        dishes = db.query(
-            models.Dish,
-        ).join(
-            models.Submenu,
-        ).filter(
-            models.Submenu.id == submenu_id,
-            models.Submenu.menu_id == menu_id,
-        ).all()
+        dishes = (
+            db.query(
+                models.Dish,
+            )
+            .join(
+                models.Submenu,
+            )
+            .filter(
+                models.Submenu.id == submenu_id,
+                models.Submenu.menu_id == menu_id,
+            )
+            .all()
+        )
 
         if dishes:
             cache.set(key, dishes)
@@ -334,24 +390,29 @@ class DishCrud:
         return dishes
 
     def get_id_dish(self, menu_id: int, submenu_id: int, dish_id: int, db: Session):
-        key = f'dish_{menu_id}_{submenu_id}_{dish_id}'
+        key = f"dish_{menu_id}_{submenu_id}_{dish_id}"
         cache_dish = cache.get(key)
 
         if cache_dish:
             return cache_dish
 
-        dish = db.query(
-            models.Dish,
-        ).join(
-            models.Submenu,
-        ).filter(
-            models.Submenu.id == submenu_id,
-            models.Submenu.menu_id == menu_id,
-            models.Dish.id == dish_id,
-        ).first()
+        dish = (
+            db.query(
+                models.Dish,
+            )
+            .join(
+                models.Submenu,
+            )
+            .filter(
+                models.Submenu.id == submenu_id,
+                models.Submenu.menu_id == menu_id,
+                models.Dish.id == dish_id,
+            )
+            .first()
+        )
 
         if not dish:
-            not_found_404('dish')
+            not_found_404("dish")
 
         cache.set(key, dish)
         return dish
@@ -359,23 +420,27 @@ class DishCrud:
     def create(self, menu_id: int, submenu_id: int, dish_data: DishCreate, db: Session):
         try:
             key = [
-                f'menu_{menu_id}',
-                'menus_list',
-                f'submenu_{menu_id}',
-                f'submenu_{menu_id}_{submenu_id}',
-                f'dish_{menu_id}_{submenu_id}',
+                f"menu_{menu_id}",
+                "menus_list",
+                f"submenu_{menu_id}",
+                f"submenu_{menu_id}_{submenu_id}",
+                f"dish_{menu_id}_{submenu_id}",
             ]
             cache.delete_one(key)
 
-            submenu = db.query(
-                models.Submenu,
-            ).filter(
-                models.Submenu.id == submenu_id,
-                models.Submenu.menu_id == menu_id,
-            ).first()
+            submenu = (
+                db.query(
+                    models.Submenu,
+                )
+                .filter(
+                    models.Submenu.id == submenu_id,
+                    models.Submenu.menu_id == menu_id,
+                )
+                .first()
+            )
 
             if not submenu:
-                not_found_404('submenu')
+                not_found_404("submenu")
 
             dish_db = models.Dish(**dict(dish_data))
             submenu.dishes.append(dish_db)
@@ -384,31 +449,43 @@ class DishCrud:
             return dish_db
         except IntegrityError as error:
             if isinstance(error.orig, UniqueViolation):
-                unique_violation('Dish')
+                unique_violation("Dish")
 
-    def update(self, menu_id: int, submenu_id: int, dish_id: int, dish_data: DishUpdate, db: Session):
+    def update(
+        self,
+        menu_id: int,
+        submenu_id: int,
+        dish_id: int,
+        dish_data: DishUpdate,
+        db: Session,
+    ):
         key = [
-            f'menu_{menu_id}',
-            'menus_list',
-            f'submenu_{menu_id}',
-            f'submenu_{menu_id}_{submenu_id}',
-            f'dish_{menu_id}_{submenu_id}',
-            f'dish_{menu_id}_{submenu_id}_{dish_id}',
+            f"menu_{menu_id}",
+            "menus_list",
+            f"submenu_{menu_id}",
+            f"submenu_{menu_id}_{submenu_id}",
+            f"dish_{menu_id}_{submenu_id}",
+            f"dish_{menu_id}_{submenu_id}_{dish_id}",
         ]
         cache.delete_one(key)
 
-        dish = db.query(
-            models.Dish,
-        ).join(
-            models.Submenu,
-        ).filter(
-            models.Submenu.id == submenu_id,
-            models.Submenu.menu_id == menu_id,
-            models.Dish.id == dish_id,
-        ).first()
+        dish = (
+            db.query(
+                models.Dish,
+            )
+            .join(
+                models.Submenu,
+            )
+            .filter(
+                models.Submenu.id == submenu_id,
+                models.Submenu.menu_id == menu_id,
+                models.Dish.id == dish_id,
+            )
+            .first()
+        )
 
         if not dish:
-            not_found_404('dish')
+            not_found_404("dish")
 
         dish.title = dish_data.title if dish_data.title else dish.title
         dish.description = dish_data.description if dish_data.description else dish.description
@@ -420,26 +497,31 @@ class DishCrud:
         return dish
 
     def delete(self, menu_id: int, submenu_id: int, dish_id: int, db: Session):
-        dish = db.query(
-            models.Dish,
-        ).join(
-            models.Submenu,
-        ).filter(
-            models.Submenu.id == submenu_id,
-            models.Submenu.menu_id == menu_id,
-            models.Dish.id == dish_id,
-        ).first()
+        dish = (
+            db.query(
+                models.Dish,
+            )
+            .join(
+                models.Submenu,
+            )
+            .filter(
+                models.Submenu.id == submenu_id,
+                models.Submenu.menu_id == menu_id,
+                models.Dish.id == dish_id,
+            )
+            .first()
+        )
 
         if not dish:
-            not_found_404('dish')
+            not_found_404("dish")
 
         key = [
-            f'menu_{menu_id}',
-            'menus_list',
-            f'submenu_{menu_id}',
-            f'submenu_{menu_id}_{submenu_id}',
-            f'dish_{menu_id}_{submenu_id}',
-            f'dish_{menu_id}_{submenu_id}_{dish.id}',
+            f"menu_{menu_id}",
+            "menus_list",
+            f"submenu_{menu_id}",
+            f"submenu_{menu_id}_{submenu_id}",
+            f"dish_{menu_id}_{submenu_id}",
+            f"dish_{menu_id}_{submenu_id}_{dish.id}",
         ]
         cache.delete_one(key)
 
@@ -447,8 +529,8 @@ class DishCrud:
         db.commit()
 
         return {
-            'status': 'true',
-            'message': 'The dish has been deleted',
+            "status": "true",
+            "message": "The dish has been deleted",
         }
 
 

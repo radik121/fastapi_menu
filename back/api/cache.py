@@ -6,7 +6,6 @@ from fastapi.encoders import jsonable_encoder
 
 
 class RedisCache:
-
     def get(self, key: str) -> Any | None:
         data = redis_client.get(name=key)
         if not data:
@@ -21,7 +20,7 @@ class RedisCache:
         redis_client.delete(*keys)
 
     def delete_all(self, key: list[str]) -> None:
-        keys = redis_client.keys(f'{key}*')
+        keys = redis_client.keys(f"{key}*")
         if keys:
             redis_client.delete(*keys)
 

@@ -1,11 +1,6 @@
 import pytest
 from app import app
-from config import (
-    POSTGRES_DB_TEST,
-    POSTGRES_HOST_TEST,
-    POSTGRES_PASSWORD,
-    POSTGRES_USER,
-)
+from config import PG_DB_TEST, PG_HOST_TEST, POSTGRES_PASSWORD, POSTGRES_USER
 from db import Base
 from db.engine import get_session
 from fastapi.testclient import TestClient
@@ -13,10 +8,10 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy_utils import create_database, database_exists
 
-SQLALCHEMY_DATABASE_URL = f'postgresql+psycopg2://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST_TEST}/{POSTGRES_DB_TEST}'
+SQLALCHEMY_DATABASE_URL = f"postgresql+psycopg2://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{PG_HOST_TEST}/{PG_DB_TEST}"
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def db_engine():
     engine = create_engine(SQLALCHEMY_DATABASE_URL)
     if not database_exists:
@@ -26,7 +21,7 @@ def db_engine():
     yield engine
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope="function")
 def db(db_engine):
     connection = db_engine.connect()
     transaction = connection.begin()
@@ -39,7 +34,7 @@ def db(db_engine):
     connection.close()
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope="function")
 def client(db):
     app.dependency_overrides[get_session] = lambda: db
     with TestClient(app) as c:
@@ -50,53 +45,53 @@ def get_first_menu(url, client):
     return client.get(url).json()[0]
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope="function")
 def get_menu():
     return get_first_menu
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope="function")
 def create_menu(client):
-    base_url = '/api/v1/menus'
+    base_url = "/api/v1/menus"
     menu_data = {
-        'title': 'menu1',
-        'description': 'desc1',
+        "title": "menu1",
+        "description": "desc1",
     }
     menu = client.post(base_url, json=menu_data)
 
     return menu.json()
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope="function")
 def base_url(client):
-    base_url = '/api/v1/menus'
+    base_url = "/api/v1/menus"
     menu = {
-        'title': 'menu1',
-        'description': 'desc1',
+        "title": "menu1",
+        "description": "desc1",
     }
-    menu_id = client.post(base_url, json=menu).json()['id']
+    menu_id = client.post(base_url, json=menu).json()["id"]
 
-    return f'/api/v1/menus/{menu_id}/submenus'
+    return f"/api/v1/menus/{menu_id}/submenus"
 
     # client.delete(f'{base_url}/{menu_id}')
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope="function")
 def base_url_dish(client):
-    base_url = '/api/v1/menus'
+    base_url = "/api/v1/menus"
     menu = {
-        'title': 'menu1',
-        'description': 'desc1',
+        "title": "menu1",
+        "description": "desc1",
     }
-    menu_id = client.post(base_url, json=menu).json()['id']
+    menu_id = client.post(base_url, json=menu).json()["id"]
 
-    submenu_url = f'/api/v1/menus/{menu_id}/submenus'
+    submenu_url = f"/api/v1/menus/{menu_id}/submenus"
     submenu = {
-        'title': 'submenu1',
-        'description': 'desc1',
+        "title": "submenu1",
+        "description": "desc1",
     }
-    submenu_id = client.post(submenu_url, json=submenu).json()['id']
+    submenu_id = client.post(submenu_url, json=submenu).json()["id"]
 
-    return f'/api/v1/menus/{menu_id}/submenus/{submenu_id}/dishes'
+    return f"/api/v1/menus/{menu_id}/submenus/{submenu_id}/dishes"
 
     # client.delete(f'{base_url}/{menu_id}')

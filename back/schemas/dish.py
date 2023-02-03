@@ -2,7 +2,6 @@ from pydantic import BaseModel
 
 
 class DishBase(BaseModel):
-
     title: str
     description: str | None
     price: str
@@ -10,10 +9,10 @@ class DishBase(BaseModel):
     class Config:
         orm_mode = True
         schema_extra = {
-            'example': {
-                'title': 'My dish',
-                'description': 'Dish description',
-                'price': '10.50',
+            "example": {
+                "title": "My dish",
+                "description": "Dish description",
+                "price": "10.50",
             },
         }
 
@@ -31,14 +30,13 @@ class Dish(DishBase):
 
 
 class DishDelete(BaseModel):
-
     status: str
     message: str
 
     class Config:
         schema_extra = {
-            'example': {
-                'status': 'true',
-                'message': 'The dish has been deleted',
+            "example": {
+                "status": "true",
+                "message": "The dish has been deleted",
             },
         }

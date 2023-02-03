@@ -2,16 +2,15 @@ from pydantic import BaseModel
 
 
 class MenuBase(BaseModel):
-
     title: str
     description: str | None
 
     class Config:
         orm_mode = True
         schema_extra = {
-            'example': {
-                'title': 'My menu',
-                'description': 'Menu description',
+            "example": {
+                "title": "My menu",
+                "description": "Menu description",
             },
         }
 
@@ -32,24 +31,23 @@ class Menu(MenuBase):
     class Config:
         orm_mode = True
         schema_extra = {
-            'example': {
-                'title': 'My menu',
-                'description': 'Menu description',
-                'submenus_count': 0,
-                'dishes_count': 0,
+            "example": {
+                "title": "My menu",
+                "description": "Menu description",
+                "submenus_count": 0,
+                "dishes_count": 0,
             },
         }
 
 
 class MenuDelete(BaseModel):
-
     status: str
     message: str
 
     class Config:
         schema_extra = {
-            'example': {
-                'status': 'true',
-                'message': 'The menu has been deleted',
+            "example": {
+                "status": "true",
+                "message": "The menu has been deleted",
             },
         }

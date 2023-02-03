@@ -16,11 +16,11 @@ from sqlalchemy import engine_from_config, pool
 config = context.config
 
 section = config.config_ini_section
-config.set_section_option(section, 'POSTGRES_USER', POSTGRES_USER)
-config.set_section_option(section, 'POSTGRES_PASSWORD', POSTGRES_PASSWORD)
-config.set_section_option(section, 'POSTGRES_DB', POSTGRES_DB)
-config.set_section_option(section, 'POSTGRES_HOST', POSTGRES_HOST)
-config.set_section_option(section, 'POSTGRES_PORT', POSTGRES_PORT)
+config.set_section_option(section, "POSTGRES_USER", POSTGRES_USER)
+config.set_section_option(section, "POSTGRES_PASSWORD", POSTGRES_PASSWORD)
+config.set_section_option(section, "POSTGRES_DB", POSTGRES_DB)
+config.set_section_option(section, "POSTGRES_HOST", POSTGRES_HOST)
+config.set_section_option(section, "POSTGRES_PORT", POSTGRES_PORT)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
@@ -51,12 +51,12 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    url = config.get_main_option('sqlalchemy.url')
+    url = config.get_main_option("sqlalchemy.url")
     context.configure(
         url=url,
         target_metadata=target_metadata,
         literal_binds=True,
-        dialect_opts={'paramstyle': 'named'},
+        dialect_opts={"paramstyle": "named"},
     )
 
     with context.begin_transaction():
@@ -72,13 +72,14 @@ def run_migrations_online() -> None:
     """
     connectable = engine_from_config(
         config.get_section(config.config_ini_section),
-        prefix='sqlalchemy.',
+        prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )
 
     with connectable.connect() as connection:
         context.configure(
-            connection=connection, target_metadata=target_metadata,
+            connection=connection,
+            target_metadata=target_metadata,
         )
 
         with context.begin_transaction():
