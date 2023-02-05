@@ -30,6 +30,7 @@ class Submenu(SubmenuBase):
     class Config:
         schema_extra = {
             "example": {
+                "id": 0,
                 "title": "My submenu",
                 "description": "Submenu description",
                 "dishes count": 0,

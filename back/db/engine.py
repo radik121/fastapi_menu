@@ -5,19 +5,20 @@ from config import (
     POSTGRES_PORT,
     POSTGRES_USER,
 )
-from sqlalchemy import create_engine
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
-DB_URL = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}"
+DB_URL = f"postgresql+asyncpg://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}"
 
-engine = create_engine(DB_URL)
+engine = create_async_engine(DB_URL, echo=True)
 
-Session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+async_session = sessionmaker(
+    bind=engine,
+    class_=AsyncSession,
+    expire_on_commit=False,
+)
 
 
-def get_session():
-    session = Session()
-    try:
+async def get_session():
+    async with async_session() as session:
         yield session
-    finally:
-        session.close()

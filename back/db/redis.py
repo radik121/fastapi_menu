@@ -1,10 +1,4 @@
-import redis
-from config import REDIS_DB, REDIS_HOST, REDIS_PORT
+import aioredis
+from config import REDIS_DB, REDIS_HOST
 
-pool = redis.ConnectionPool(
-    host=REDIS_HOST,
-    port=REDIS_PORT,
-    db=REDIS_DB,
-)
-
-redis_client = redis.Redis(connection_pool=pool)
+redis_client = aioredis.from_url(f"redis://{REDIS_HOST}", db=REDIS_DB)

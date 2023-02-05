@@ -44,8 +44,6 @@ repos:
     rev: v0.991
     hooks:
     -   id: mypy
-        additional_dependencies: [types-redis==4.4.0.4]
-        args: [--no-strict-optional, --ignore-missing-imports]
 
 # Форматирует код под PEP8 c помощью black
 -   repo: https://github.com/psf/black

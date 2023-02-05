@@ -32,6 +32,7 @@ class Menu(MenuBase):
         orm_mode = True
         schema_extra = {
             "example": {
+                "id": "0",
                 "title": "My menu",
                 "description": "Menu description",
                 "submenus_count": 0,

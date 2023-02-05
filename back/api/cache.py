@@ -6,23 +6,23 @@ from fastapi.encoders import jsonable_encoder
 
 
 class RedisCache:
-    def get(self, key: str) -> Any | None:
-        data = redis_client.get(name=key)
+    async def get(self, key: str) -> Any | None:
+        data = await redis_client.get(name=key)
         if not data:
             return None
         return json.loads(data)
 
-    def set(self, key: str, value: Any) -> None:
+    async def set(self, key: str, value: Any) -> None:
         data = json.dumps(jsonable_encoder(value))
-        redis_client.set(name=key, value=data)
+        await redis_client.set(name=key, value=data)
 
-    def delete_one(self, keys: list[str] | str) -> None:
-        redis_client.delete(*keys)
+    async def delete_one(self, keys: list[str] | str) -> None:
+        await redis_client.delete(*keys)
 
-    def delete_all(self, key: list[str]) -> None:
-        keys = redis_client.keys(f"{key}*")
+    async def delete_all(self, key: list[str]) -> None:
+        keys = await redis_client.keys(f"{key}*")
         if keys:
-            redis_client.delete(*keys)
+            await redis_client.delete(*keys)
 
 
 cache = RedisCache()
