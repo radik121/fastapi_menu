@@ -339,6 +339,8 @@ class DishCrud:
 
 
 class TestMenu:
+    """Generate test data finto DB"""
+
     @staticmethod
     async def create_test_menu(db: Session):
         with open("./generate_data.json") as file:
@@ -346,11 +348,18 @@ class TestMenu:
 
         for menu in menus:
             menu_create = await ServiceQuery.add_test_data(
-                title=menu["title"], desc=menu["description"], table="menu", db=db
+                title=menu["title"],
+                desc=menu["description"],
+                table="menu",
+                db=db,
             )
             for submenu in menu["submenus"]:
                 submenu_create = await ServiceQuery.add_test_data(
-                    title=submenu["title"], desc=submenu["description"], table="submenu", db=db, id=menu_create.id
+                    title=submenu["title"],
+                    desc=submenu["description"],
+                    table="submenu",
+                    db=db,
+                    id=menu_create.id,
                 )
                 for dish in submenu["dishes"]:
                     await ServiceQuery.add_test_data(

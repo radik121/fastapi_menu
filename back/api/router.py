@@ -191,6 +191,11 @@ async def delete_dish(menu_id: int, submenu_id: int, dish_id: int, db: Session =
     return await dish.delete(menu_id, submenu_id, dish_id, db)
 
 
-@router.get("/generate_data", status_code=status.HTTP_200_OK, tags=["test_data"])
+@router.get(
+    "/generate_data",
+    status_code=status.HTTP_200_OK,
+    tags=["test_data"],
+    summary="Автогенерация тестовых данных в БД",
+)
 async def generate_data_db(db: Session = Depends(get_session)):
     return await TestMenu.create_test_menu(db)
