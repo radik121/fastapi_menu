@@ -1,3 +1,5 @@
+import json
+
 from db.models import Dish, Menu, Submenu
 from schemas.dish import DishCreate, DishUpdate
 from schemas.menu import MenuCreate, MenuUpdate
@@ -334,6 +336,33 @@ class DishCrud:
             }
         except AttributeError:
             ServiceExc.not_found_404("dish")
+
+
+class TestMenu:
+    @staticmethod
+    async def create_test_menu(db: Session):
+        with open("./generate_data.json") as file:
+            menus = json.load(file)
+
+        for menu in menus:
+            menu_create = await ServiceQuery.add_test_data(
+                title=menu["title"], desc=menu["description"], table="menu", db=db
+            )
+            for submenu in menu["submenus"]:
+                submenu_create = await ServiceQuery.add_test_data(
+                    title=submenu["title"], desc=submenu["description"], table="submenu", db=db, id=menu_create.id
+                )
+                for dish in submenu["dishes"]:
+                    await ServiceQuery.add_test_data(
+                        title=dish["title"],
+                        desc=dish["description"],
+                        price=dish["price"],
+                        table="dish",
+                        db=db,
+                        id=submenu_create.id,
+                    )
+
+        return {"Message": "The database is full"}
 
 
 menu = MenuCrud()

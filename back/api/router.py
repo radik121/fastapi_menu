@@ -7,7 +7,7 @@ from schemas.menu import Menu, MenuCreate, MenuDelete, MenuUpdate
 from schemas.submenu import Submenu, SubmenuCreate, SubmenuDelete, SubmenuUpdate
 from sqlalchemy.orm import Session
 
-from .operations import dish, menu, submenu
+from .operations import TestMenu, dish, menu, submenu
 
 router = APIRouter(
     prefix="/api/v1",
@@ -189,3 +189,8 @@ async def update_dish(
 )
 async def delete_dish(menu_id: int, submenu_id: int, dish_id: int, db: Session = Depends(get_session)):
     return await dish.delete(menu_id, submenu_id, dish_id, db)
+
+
+@router.get("/generate_data", status_code=status.HTTP_200_OK, tags=["test_data"])
+async def generate_data_db(db: Session = Depends(get_session)):
+    return await TestMenu.create_test_menu(db)
