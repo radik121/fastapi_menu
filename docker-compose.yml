@@ -12,6 +12,7 @@ services:
       "
     volumes:
       - .:/app
+      - celery-data:/app/task_files
     ports:
       - '8000:8000'
     networks:
@@ -20,6 +21,8 @@ services:
       db:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
 
   db:
@@ -56,6 +59,39 @@ services:
       timeout: 5s
       retries: 5
 
+  rabbitmq:
+    container_name: rabbitmq
+    image: rabbitmq:3.11.8-alpine
+    env_file:
+      - .env
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 30s
+      retries: 3
+    ports:
+      - 5672:5672
+    networks:
+      - menu_networks
+
+  celery:
+    container_name: "celery"
+    build: ./back
+    entrypoint: >
+      sh -c "
+        celery -A api.celery_app:celery_app worker --loglevel=INFO
+      "
+    env_file:
+      - .env
+    networks:
+      - menu_networks
+    restart: on-failure
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    volumes:
+      - celery-data:/app/task_files
+
 networks:
   menu_networks:
     name: menu_networks
@@ -63,3 +99,5 @@ networks:
 volumes:
   db_data:
     name: db_data
+  celery-data:
+    name: celery-data

@@ -1,7 +1,8 @@
 from db.models import Dish, Menu, Submenu
 from fastapi import HTTPException, Query, status
 from sqlalchemy import delete, distinct, func, select
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload
 
 
 class ServiceExc:
@@ -206,7 +207,7 @@ class ServiceQuery:
 
     @staticmethod
     async def add_test_data(
-        title: str, desc: str, table: str, db: Session, id: int | None = None, price: str | None = None
+        title: str, desc: str, table: str, db: AsyncSession, id: int | None = None, price: str | None = None
     ) -> Query:
         match table:
             case "menu":
@@ -222,3 +223,9 @@ class ServiceQuery:
         await db.commit()
         await db.refresh(data)
         return data
+
+    @staticmethod
+    def get_all_menu():
+        query = select(Menu).options(joinedload(Menu.submenus).joinedload(Submenu.dishes))
+
+        return query

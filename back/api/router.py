@@ -5,9 +5,9 @@ from fastapi import APIRouter, Depends, status
 from schemas.dish import Dish, DishCreate, DishDelete, DishUpdate
 from schemas.menu import Menu, MenuCreate, MenuDelete, MenuUpdate
 from schemas.submenu import Submenu, SubmenuCreate, SubmenuDelete, SubmenuUpdate
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from .operations import TestMenu, dish, menu, submenu
+from .operations import TestMenu, dish, menu, submenu, task_worker
 
 router = APIRouter(
     prefix="/api/v1",
@@ -25,7 +25,7 @@ async def startup():
     tags=["menu"],
     summary="Список меню",
 )
-async def get_menu_list(db: Session = Depends(get_session)) -> list[models.Menu]:
+async def get_menu_list(db: AsyncSession = Depends(get_session)) -> list[models.Menu]:
     return await menu.get_list(db)
 
 
@@ -35,7 +35,7 @@ async def get_menu_list(db: Session = Depends(get_session)) -> list[models.Menu]
     tags=["menu"],
     summary="Конкретное меню",
 )
-async def get_menu(menu_id: int, db: Session = Depends(get_session)) -> models.Menu:
+async def get_menu(menu_id: int, db: AsyncSession = Depends(get_session)) -> models.Menu:
     return await menu.get_id_menu(menu_id, db)
 
 
@@ -46,7 +46,7 @@ async def get_menu(menu_id: int, db: Session = Depends(get_session)) -> models.M
     tags=["menu"],
     summary="Создание меню",
 )
-async def create_menu(menu_data: MenuCreate, db: Session = Depends(get_session)) -> Menu:
+async def create_menu(menu_data: MenuCreate, db: AsyncSession = Depends(get_session)) -> Menu:
     return await menu.create(menu_data, db)
 
 
@@ -56,7 +56,7 @@ async def create_menu(menu_data: MenuCreate, db: Session = Depends(get_session))
     tags=["menu"],
     summary="Изменение конкрентного меню",
 )
-async def update_menu(menu_id: int, menu_data: MenuUpdate, db: Session = Depends(get_session)) -> Menu:
+async def update_menu(menu_id: int, menu_data: MenuUpdate, db: AsyncSession = Depends(get_session)) -> Menu:
     return await menu.update(menu_id, menu_data, db)
 
 
@@ -67,7 +67,7 @@ async def update_menu(menu_id: int, menu_data: MenuUpdate, db: Session = Depends
     tags=["menu"],
     summary="Удаление конкрентного меню",
 )
-async def delete_menu(menu_id: int, db: Session = Depends(get_session)):
+async def delete_menu(menu_id: int, db: AsyncSession = Depends(get_session)):
     return await menu.delete(menu_id, db)
 
 
@@ -77,7 +77,7 @@ async def delete_menu(menu_id: int, db: Session = Depends(get_session)):
     tags=["submenu"],
     summary="Список подменю",
 )
-async def get_submenu_list(menu_id: int, db: Session = Depends(get_session)) -> list[models.Submenu]:
+async def get_submenu_list(menu_id: int, db: AsyncSession = Depends(get_session)) -> list[models.Submenu]:
     return await submenu.get_list(menu_id, db)
 
 
@@ -87,7 +87,7 @@ async def get_submenu_list(menu_id: int, db: Session = Depends(get_session)) -> 
     tags=["submenu"],
     summary="Конкрентное подменю",
 )
-async def get_submenu(menu_id: int, submenu_id: int, db: Session = Depends(get_session)) -> models.Submenu:
+async def get_submenu(menu_id: int, submenu_id: int, db: AsyncSession = Depends(get_session)) -> models.Submenu:
     return await submenu.get_id_submenu(menu_id, submenu_id, db)
 
 
@@ -98,7 +98,7 @@ async def get_submenu(menu_id: int, submenu_id: int, db: Session = Depends(get_s
     tags=["submenu"],
     summary="Создание подменю",
 )
-async def create_submenu(menu_id: int, submenu_data: SubmenuCreate, db: Session = Depends(get_session)) -> Submenu:
+async def create_submenu(menu_id: int, submenu_data: SubmenuCreate, db: AsyncSession = Depends(get_session)) -> Submenu:
     return await submenu.create(menu_id, submenu_data, db)
 
 
@@ -112,7 +112,7 @@ async def update_submenu(
     menu_id: int,
     submenu_id: int,
     submenu_data: SubmenuUpdate,
-    db: Session = Depends(get_session),
+    db: AsyncSession = Depends(get_session),
 ) -> Submenu:
     return await submenu.update(menu_id, submenu_id, submenu_data, db)
 
@@ -124,7 +124,7 @@ async def update_submenu(
     tags=["submenu"],
     summary="Удаление конкрентного подменю",
 )
-async def delete_submenu(menu_id: int, submenu_id: int, db: Session = Depends(get_session)):
+async def delete_submenu(menu_id: int, submenu_id: int, db: AsyncSession = Depends(get_session)):
     return await submenu.delete(menu_id, submenu_id, db)
 
 
@@ -134,7 +134,7 @@ async def delete_submenu(menu_id: int, submenu_id: int, db: Session = Depends(ge
     tags=["dish"],
     summary="Список блюд",
 )
-async def get_dish_list(menu_id: int, submenu_id: int, db: Session = Depends(get_session)) -> list[models.Dish]:
+async def get_dish_list(menu_id: int, submenu_id: int, db: AsyncSession = Depends(get_session)) -> list[models.Dish]:
     return await dish.get_list(menu_id, submenu_id, db)
 
 
@@ -144,7 +144,7 @@ async def get_dish_list(menu_id: int, submenu_id: int, db: Session = Depends(get
     tags=["dish"],
     summary="Конкрентное блюдо",
 )
-async def get_dish(menu_id: int, submenu_id: int, dish_id: int, db: Session = Depends(get_session)) -> models.Dish:
+async def get_dish(menu_id: int, submenu_id: int, dish_id: int, db: AsyncSession = Depends(get_session)) -> models.Dish:
     return await dish.get_id_dish(menu_id, submenu_id, dish_id, db)
 
 
@@ -159,7 +159,7 @@ async def create_dish(
     menu_id: int,
     submenu_id: int,
     dish_data: DishCreate,
-    db: Session = Depends(get_session),
+    db: AsyncSession = Depends(get_session),
 ) -> Dish:
     return await dish.create(menu_id, submenu_id, dish_data, db)
 
@@ -175,7 +175,7 @@ async def update_dish(
     submenu_id: int,
     dish_id: int,
     dish_data: DishUpdate,
-    db: Session = Depends(get_session),
+    db: AsyncSession = Depends(get_session),
 ) -> Dish:
     return await dish.update(menu_id, submenu_id, dish_id, dish_data, db)
 
@@ -187,7 +187,7 @@ async def update_dish(
     tags=["dish"],
     summary="Удаление конкрентного блюда",
 )
-async def delete_dish(menu_id: int, submenu_id: int, dish_id: int, db: Session = Depends(get_session)):
+async def delete_dish(menu_id: int, submenu_id: int, dish_id: int, db: AsyncSession = Depends(get_session)):
     return await dish.delete(menu_id, submenu_id, dish_id, db)
 
 
@@ -197,5 +197,25 @@ async def delete_dish(menu_id: int, submenu_id: int, dish_id: int, db: Session =
     tags=["test_data"],
     summary="Автогенерация тестовых данных в БД",
 )
-async def generate_data_db(db: Session = Depends(get_session)):
+async def generate_data_db(db: AsyncSession = Depends(get_session)):
     return await TestMenu.create_test_menu(db)
+
+
+@router.post(
+    path="/task_file",
+    status_code=status.HTTP_201_CREATED,
+    tags=["download_menu"],
+    summary="Создание задачи на получения меню",
+)
+async def create_task_full_menu(db: AsyncSession = Depends(get_session)):
+    return await task_worker.all_data_to_file(db)
+
+
+@router.get(
+    path="/task_file/{task_id}",
+    status_code=status.HTTP_200_OK,
+    tags=["download_menu"],
+    summary="Получение ссылки на файла",
+)
+async def get_download_file(task_id: str):
+    return task_worker.get_data_to_file(task_id)

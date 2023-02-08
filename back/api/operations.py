@@ -1,11 +1,14 @@
 import json
 
+from api.tasks import get_result, save_data_to_xlsx
 from db.models import Dish, Menu, Submenu
+from fastapi.encoders import jsonable_encoder
+from fastapi.responses import FileResponse
 from schemas.dish import DishCreate, DishUpdate
 from schemas.menu import MenuCreate, MenuUpdate
 from schemas.submenu import SubmenuCreate, SubmenuUpdate
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from .cache import cache
 from .service import ServiceExc, ServiceQuery
@@ -14,7 +17,7 @@ from .service import ServiceExc, ServiceQuery
 class MenuCrud:
     """Requests by menu"""
 
-    async def get_list(self, db: Session):
+    async def get_list(self, db: AsyncSession):
         key = "menus_list"
         cache_menus = await cache.get(key)
 
@@ -37,7 +40,7 @@ class MenuCrud:
 
         return menus
 
-    async def get_id_menu(self, menu_id: int, db: Session):
+    async def get_id_menu(self, menu_id: int, db: AsyncSession):
         key = f"menu_{menu_id}"
         cache_menu = await cache.get(key)
 
@@ -59,7 +62,7 @@ class MenuCrud:
         else:
             ServiceExc.not_found_404("menu")
 
-    async def create(self, menu_data: MenuCreate, db: Session):
+    async def create(self, menu_data: MenuCreate, db: AsyncSession):
         try:
             await cache.delete_one(["menus_list"])
             menu_db = Menu(**menu_data.dict())
@@ -70,7 +73,7 @@ class MenuCrud:
         except IntegrityError:
             ServiceExc.unique_violation("Menu")
 
-    async def update(self, menu_id: int, menu_data: MenuUpdate, db: Session):
+    async def update(self, menu_id: int, menu_data: MenuUpdate, db: AsyncSession):
         key = [f"menu_{menu_id}", "menus_list"]
 
         query = await db.execute(ServiceQuery.select_menu(menu_id))
@@ -91,7 +94,7 @@ class MenuCrud:
         else:
             ServiceExc.not_found_404("menu")
 
-    async def delete(self, menu_id: int, db: Session):
+    async def delete(self, menu_id: int, db: AsyncSession):
         query = await db.execute(ServiceQuery.select_or_delete_menu(menu_id, "select"))
         result = query.first()
 
@@ -118,7 +121,7 @@ class MenuCrud:
 class SubmenuCrud:
     """Requests by submenu"""
 
-    async def get_list(self, menu_id: int, db: Session):
+    async def get_list(self, menu_id: int, db: AsyncSession):
         key = f"submenu_{menu_id}"
         cache_submenus = await cache.get(key)
 
@@ -140,7 +143,7 @@ class SubmenuCrud:
 
         return submenus
 
-    async def get_id_submenu(self, menu_id: int, submenu_id: int, db: Session):
+    async def get_id_submenu(self, menu_id: int, submenu_id: int, db: AsyncSession):
         key = f"submenu_{menu_id}_{submenu_id}"
         cache_submenu = await cache.get(key)
 
@@ -161,7 +164,7 @@ class SubmenuCrud:
 
         return submenu
 
-    async def create(self, menu_id: int, submenu_data: SubmenuCreate, db: Session):
+    async def create(self, menu_id: int, submenu_data: SubmenuCreate, db: AsyncSession):
         try:
             key = [f"menu_{menu_id}", "menus_list", f"submenu_{menu_id}"]
             await cache.delete_one(key)
@@ -180,7 +183,7 @@ class SubmenuCrud:
         except IntegrityError:
             ServiceExc.unique_violation("Submenu")
 
-    async def update(self, menu_id: int, submenu_id: int, submenu_data: SubmenuUpdate, db: Session):
+    async def update(self, menu_id: int, submenu_id: int, submenu_data: SubmenuUpdate, db: AsyncSession):
         key = [
             f"menu_{menu_id}",
             "menus_list",
@@ -202,7 +205,7 @@ class SubmenuCrud:
         else:
             ServiceExc.not_found_404("submenu")
 
-    async def delete(self, menu_id: int, submenu_id: int, db: Session):
+    async def delete(self, menu_id: int, submenu_id: int, db: AsyncSession):
         query = await db.execute(ServiceQuery.select_or_del_submenu(menu_id, submenu_id, "select"))
         submenu = query.scalars().first()
 
@@ -230,7 +233,7 @@ class SubmenuCrud:
 class DishCrud:
     """Requests by dish"""
 
-    async def get_list(self, menu_id: int, submenu_id: int, db: Session):
+    async def get_list(self, menu_id: int, submenu_id: int, db: AsyncSession):
         key = f"dish_{menu_id}_{submenu_id}"
         cache_dishes = await cache.get(key)
 
@@ -245,7 +248,7 @@ class DishCrud:
 
         return dishes
 
-    async def get_id_dish(self, menu_id: int, submenu_id: int, dish_id: int, db: Session):
+    async def get_id_dish(self, menu_id: int, submenu_id: int, dish_id: int, db: AsyncSession):
         key = f"dish_{menu_id}_{submenu_id}_{dish_id}"
         cache_dish = await cache.get(key)
 
@@ -261,7 +264,7 @@ class DishCrud:
         await cache.set(key, dish)
         return dish
 
-    async def create(self, menu_id: int, submenu_id: int, dish_data: DishCreate, db: Session):
+    async def create(self, menu_id: int, submenu_id: int, dish_data: DishCreate, db: AsyncSession):
         try:
             key = [
                 f"menu_{menu_id}",
@@ -285,7 +288,7 @@ class DishCrud:
         except IntegrityError:
             ServiceExc.unique_violation("Dish")
 
-    async def update(self, menu_id: int, submenu_id: int, dish_id: int, dish_data: DishUpdate, db: Session):
+    async def update(self, menu_id: int, submenu_id: int, dish_id: int, dish_data: DishUpdate, db: AsyncSession):
         key = [
             f"menu_{menu_id}",
             "menus_list",
@@ -312,7 +315,7 @@ class DishCrud:
         except AttributeError:
             ServiceExc.not_found_404("dish")
 
-    async def delete(self, menu_id: int, submenu_id: int, dish_id: int, db: Session):
+    async def delete(self, menu_id: int, submenu_id: int, dish_id: int, db: AsyncSession):
         try:
             query = await db.execute(ServiceQuery.select_or_del_dish(menu_id, submenu_id, dish_id, "select"))
             dish = query.scalars().first()
@@ -342,7 +345,7 @@ class TestMenu:
     """Generate test data finto DB"""
 
     @staticmethod
-    async def create_test_menu(db: Session):
+    async def create_test_menu(db: AsyncSession):
         with open("./generate_data.json") as file:
             menus = json.load(file)
 
@@ -374,6 +377,37 @@ class TestMenu:
         return {"Message": "The database is full"}
 
 
+class AllMenu:
+    """Request all menu from db"""
+
+    @staticmethod
+    async def all_menu(db: AsyncSession):
+        query_result = await db.execute(ServiceQuery.get_all_menu())
+        result = jsonable_encoder(query_result.scalars().unique().all())
+
+        return result
+
+
+class TaskMenu(AllMenu):
+    async def all_data_to_file(self, db: AsyncSession):
+        data = await self.all_menu(db)
+        task = save_data_to_xlsx.delay(data)
+        return {"status": "True", "task id": {task.id}}
+
+    def get_data_to_file(self, task_id: str):
+        task = get_result(task_id)
+        if task.ready():
+            filename = task.result["file_name"]
+            return FileResponse(
+                path=f"/app/task_files/{filename}",
+                media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                headers={"Content-Disposition": f"attachment; filename={filename}"},
+            )
+        else:
+            return {"task_id": task_id, "status": task.status}
+
+
 menu = MenuCrud()
 submenu = SubmenuCrud()
 dish = DishCrud()
+task_worker = TaskMenu()
