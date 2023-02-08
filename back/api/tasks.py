@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any
 
 import openpyxl
 
@@ -9,7 +9,7 @@ from .celery_app import celery_app
 @celery_app.task
 def save_data_to_xlsx(data: dict):
     file_name = f"{datetime.now().strftime('%d-%m-%Y-%H-%M')}_menu.xlsx"
-    file_path = f'task_files/{file_name}'
+    file_path = f"task_files/{file_name}"
     save_to_xlsx(data, file_path)
     return {"file_name": file_name}
 
@@ -19,7 +19,7 @@ def get_result(task_id: str):
     return task
 
 
-def save_to_xlsx(data: Dict[Any, Any], file_name: str) -> None:
+def save_to_xlsx(data: dict[Any, Any], file_name: str) -> None:
     book = openpyxl.Workbook()
     sheet = book.active
     menu_row, menu_column, menu_counter = 1, 1, 1
