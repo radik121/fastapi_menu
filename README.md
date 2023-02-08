@@ -5,6 +5,9 @@
 - Uvicorn
 - PosgresSQL
 - SQLAlchemy
+- Redis (cache)
+- Celery + RabbitMQ
+- Pytest
 - Docker, docker-compose
 
 
